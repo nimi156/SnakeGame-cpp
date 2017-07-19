@@ -1,0 +1,154 @@
+#include <iostream>
+#include <conio.h> // console input/output
+#include <windows.h>
+using namespace std;
+bool gameOver; // yes/no value for the GameOver fuction
+const int width = 50; // constant values / they wont be changed, later on. The are the GUI of the game.
+const int height = 20; // 20 width and 20 height is fine but for a larger map, i.e allowing snake to grow more we can make it 50,20
+int x, y, fruitX, fruitY, score; // changing direction of snake
+int tailX[100], tailY[100]; //array for tail as tail grows the snake grows, in the LOGIC() we do ntail ++;
+int nTail;
+enum eDirecton { STOP = 0, LEFT, RIGHT, UP, DOWN};
+eDirecton dir; // holds direction of snake
+void Setup() //we Start out by creating void functions of how the game will operate
+{
+    gameOver = false; // gameOver varible with a boolean value
+    dir = STOP;
+    x = width / 2;
+    y = height / 2; //snake head will be centered
+    fruitX = rand() % width; //placing the fruit randomly on the map
+    fruitY = rand() % height;
+    score = 0;
+
+}
+void Draw()
+{
+    system("cls"); //system("clear") i.e console window
+    for (int i = 0; i < width+2; i++)
+        cout << "#"; //head of snake
+    cout << endl;
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            if (j == 0)
+                cout << "#";
+            if (i == y && j == x)
+                cout << "O";
+            else if (i == fruitY && j == fruitX)
+                cout << "F"; // fot fuit
+            else
+            {
+                bool print = false;
+                for (int k = 0; k < nTail; k++)
+                {
+                    if (tailX[k] == j && tailY[k] == i)
+                    {
+                        cout << "o"; // tail
+                        print = true;
+                    }
+                }
+                if (!print)
+                    cout << " ";
+            }
+
+
+            if (j == width - 1)
+                cout << "#";
+        }
+        cout << endl;
+    }
+
+    for (int i = 0; i < width+2; i++)
+        cout << "#";
+    cout << endl;
+    cout << "Score:" << score << endl;
+    cout<<"Game made by Khalid Ka"<<endl;
+}
+void Input()
+{
+    if (_kbhit()) // if something is pressed on the keyboard it will return boolean value if not it will return 0
+    {
+        switch (_getch()) //_getch gets the value of the input from the keyboard
+        { //by creating a switch statement we are able to move the snake with W for up, S for down etc.
+        case 'a':
+            dir = LEFT;
+            break;
+        case 'd':
+            dir = RIGHT;
+            break;
+        case 'w':
+            dir = UP;
+            break;
+        case 's':
+            dir = DOWN;
+            break;
+        case 'x': // if someone presses x the game will be over
+            gameOver = true;
+            break;
+        }
+    }
+}
+void Logic()
+{
+    int prevX = tailX[0];
+    int prevY = tailY[0];
+    int prev2X, prev2Y;
+    tailX[0] = x;   // so tail follows the head
+    tailY[0] = y;
+    for (int i = 1; i < nTail; i++)
+    {
+        prev2X = tailX[i];
+        prev2Y = tailY[i];
+        tailX[i] = prevX;
+        tailY[i] = prevY;
+        prevX = prev2X;
+        prevY = prev2Y;
+    }
+    switch (dir) // if we press a left it goes through the wall etc
+    {
+    case LEFT:
+        x--;
+        break;
+    case RIGHT:
+        x++;
+        break;
+    case UP:
+        y--;
+        break;
+    case DOWN:
+        y++;
+        break;
+    default:
+        break;
+    }
+    //if (x > width || x < 0 || y > height || y < 0)
+    //  gameOver = true;
+    if (x >= width) x = 0; else if (x < 0) x = width - 1;
+    if (y >= height) y = 0; else if (y < 0) y = height - 1;
+
+    for (int i = 0; i < nTail; i++)
+        if (tailX[i] == x && tailY[i] == y)
+            gameOver = true;
+
+    if (x == fruitX && y == fruitY) //checking and looping through all tail secments to see if we hit ourself fo rnot
+    {  // enables us to eat the fruit
+        score += 10;
+        fruitX = rand() % width;
+        fruitY = rand() % height;
+        nTail++;
+    }
+}
+int main()
+{
+    Setup();
+    while (!gameOver)
+    {
+        Draw();
+        Input();
+        Logic();
+        Sleep(100); //sleep(10); the larger the number the slower the snake will move
+    }
+    return 0;
+}
